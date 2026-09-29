@@ -12,4 +12,5 @@ add_executable(Helmke_Library_Management_System
         database.cpp
         Book.cpp
         LibraryItem.cpp
+        database.cpp
 )
