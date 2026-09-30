@@ -38,7 +38,7 @@ bool Database::execSQL(const std::string& sql) {
     // try to execute the query
     int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &errMsg);
 
-    // throw error if sql does not run
+    // throw error if SQL does not run
     if (rc != SQLITE_OK) {
         std::cerr << "SQL error: " << errMsg << "\n";
         sqlite3_free(errMsg);
@@ -129,11 +129,11 @@ bool Database::getPatronByID(int patronID, Patron& outPatron) {
     const char* sql = "SELECT patron_id, name, email, patron_type, borrow_limit, fines_owed "
         "FROM patrons WHERE patron_id = ? ";
 
-    // prepare sql statement
+    // prepare SQL statement
     sqlite3_stmt *stmt = nullptr;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-    // throw error if sql statement could not be prepared
+    // throw error if SQL statement could not be prepared
     if (rc != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
         return false;
@@ -142,7 +142,7 @@ bool Database::getPatronByID(int patronID, Patron& outPatron) {
     // bind patron id
     sqlite3_bind_int(stmt, 1, patronID);
 
-    // run sql statement
+    // run SQL statement
     int result = sqlite3_step(stmt);
 
     // if a row was found, pull out all columns (6 in our situation) to build the Patron
@@ -165,12 +165,12 @@ bool Database::getPatronByID(int patronID, Patron& outPatron) {
         // build the patron object
         outPatron = Patron(id, name, email, type, borrowLimit, finesOwed);
 
-        // clean up sql statement
+        // clean up SQL statement
         sqlite3_finalize(stmt);
         return true;
     }
 
-    // clean up sql statement
+    // clean up SQL statement
     sqlite3_finalize(stmt);
     return false;
 }
@@ -183,11 +183,11 @@ std::vector<Patron> Database::getAllPatrons() {
     const char* sql = "SELECT patron_id, name, email, patron_type, borrow_limit, fines_owed "
         "FROM patrons";
 
-    // prepare sql statement
+    // prepare SQL statement
     sqlite3_stmt *stmt = nullptr;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-    // throw error if sql statement could not be prepared
+    // throw error if SQL statement could not be prepared
     if (rc != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
         return std::vector<Patron>();
@@ -226,11 +226,11 @@ bool Database::getPatronWithMostFines(Patron& outPatron) {
     const char* sql = "SELECT patron_id, name, email, patron_type, borrow_limit, fines_owed "
         "FROM patrons ORDER BY fines_owed DESC LIMIT 1";
 
-    // prepare sql statement
+    // prepare SQL statement
     sqlite3_stmt *stmt = nullptr;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
-    // throw error if sql statement cannot be prepared
+    // throw error if SQL statement cannot be prepared
     if (rc != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
         return false;
