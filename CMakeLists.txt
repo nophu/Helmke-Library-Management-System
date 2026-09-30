@@ -10,4 +10,5 @@ add_executable(Helmke_Library_Management_System
         main.cpp
         Patron.cpp
         database.cpp
+        sqlite3.c
 )
