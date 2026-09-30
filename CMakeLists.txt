@@ -10,7 +10,4 @@ add_executable(Helmke_Library_Management_System
         main.cpp
         Patron.cpp
         database.cpp
-        Book.cpp
-        LibraryItem.cpp
-        database.cpp
 )

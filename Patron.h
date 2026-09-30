@@ -2,10 +2,11 @@
 #define PATRON_H
 
 #include <string>
-#include <vector>
+#include <vector> // for resizable arrays
 
 enum class PatronType { Student, Faculty, Staff };
 
+// 'Class' instead of Struct because Class is private by default while Struct is public by default, and we need to protect data like fines & borrow limits
 class Patron {
 private:
     int patronID;
@@ -20,7 +21,11 @@ private:
     static constexpr double BLOCK_THRESHOLD = 10.00; // maybe change this too ?? 
 
 public:
+
     Patron(int id, const std::string& name, const std::string& email, PatronType type);
+
+    // full constructor/initializer, used for rebuilding a patron with already-known values (since we'd be loading patron information from the database)
+    Patron(int id, const std::string& name, const std::string& email, PatronType type, int borrowLimit, double finesOwed);
 
     void setName(const std::string& newName);
     void setEmail(const std::string& newEmail);

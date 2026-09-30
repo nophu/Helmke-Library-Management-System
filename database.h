@@ -3,7 +3,7 @@
 
 #include <sqlite3.h>
 #include <string>
-#include <vector>
+#include <vector> // for resizable arrays 
 #include "Patron.h"
 
 class Database {
