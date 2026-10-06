@@ -1,0 +1,12 @@
+   # Build directories
+   cmake-build-debug/
+
+   # IDE-specific files
+   .idea/
+
+   # External libraries
+   external/glfw/
+   external/imgui/
+
+   # CMake-related files
+   CMakeLists.txt
