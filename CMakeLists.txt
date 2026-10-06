@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.20)
 project(Helmke_Library_Management_System)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -26,6 +26,20 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(imgui)
 set(IMGUI_DIR ${imgui_SOURCE_DIR})
 
+# --- SQLite (amalgamation) ---
+FetchContent_Declare(
+        sqlite3
+        URL https://www.sqlite.org/2024/sqlite-amalgamation-3460000.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(sqlite3)
+
+add_library(sqlite3_lib STATIC ${sqlite3_SOURCE_DIR}/sqlite3.c)
+target_include_directories(sqlite3_lib PUBLIC ${sqlite3_SOURCE_DIR})
+
+# --- OpenGL ---
+find_package(OpenGL REQUIRED)
+
 include_directories(include)
 
 add_executable(Helmke_Library_Management_System
@@ -47,6 +61,11 @@ add_executable(Helmke_Library_Management_System
         # ImGui backends
         ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
         ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+        include/ui/screens/main_screen.h
+        include/ui/screens/main_screen.h
+        include/ui/screens/main_screen.h
+        include/ui/screens/main_screen.h
+        src/ui/screens/main_screen.cpp
 )
 
 target_include_directories(Helmke_Library_Management_System PRIVATE
@@ -54,8 +73,8 @@ target_include_directories(Helmke_Library_Management_System PRIVATE
         ${IMGUI_DIR}/backends
 )
 
-target_link_libraries(Helmke_Library_Management_System PRIVATE glfw)
-
-if (WIN32)
-    target_link_libraries(Helmke_Library_Management_System PRIVATE opengl32)
-endif()
+target_link_libraries(Helmke_Library_Management_System PRIVATE
+        glfw
+        OpenGL::GL
+        sqlite3_lib
+)
