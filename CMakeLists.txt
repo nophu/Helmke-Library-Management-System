@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Helmke_Library_Management_System CXX)
+project(Helmke_Library_Management_System C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,14 +45,14 @@ include_directories(include)
 add_executable(Helmke_Library_Management_System
         include/database.h
         include/Patron.h
-        src/main.cpp
-        src/ui/screens/screen.cpp
         include/ui/screens/screen.h
+        include/ui/screens/main_screen.h
         include/ui/ui_manager.h
+
+        src/main.cpp
         src/ui/ui_manager.cpp
-        Patron.cpp
-        database.cpp
-        sqlite3.c
+        src/ui/screens/screen.cpp
+        src/ui/screens/main_screen.cpp
 
         # ImGui core
         ${IMGUI_DIR}/imgui.cpp
@@ -64,11 +64,6 @@ add_executable(Helmke_Library_Management_System
         # ImGui backends
         ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
         ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-        include/ui/screens/main_screen.h
-        include/ui/screens/main_screen.h
-        include/ui/screens/main_screen.h
-        include/ui/screens/main_screen.h
-        src/ui/screens/main_screen.cpp
 )
 
 target_include_directories(Helmke_Library_Management_System PRIVATE
