@@ -2,6 +2,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 #include <memory>
 
@@ -11,11 +12,17 @@
 int main() {
     if (!glfwInit()) return 1;
 
-    const auto glsl_version = "#version 130";
+    const auto glsl_version = "#version 150";
+    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Helmke Library Management System", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(
+        1280, 720,
+        "Helmke Library Management System",
+        nullptr, nullptr
+    );
+
     if (!window) {
         glfwTerminate();
         return 1;

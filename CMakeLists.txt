@@ -45,11 +45,18 @@ include_directories(include)
 add_executable(Helmke_Library_Management_System
         include/database.h
         include/Patron.h
+        include/Book.h
+        include/LibraryItem.h
+        include/Library.h
         include/ui/screens/screen.h
         include/ui/screens/main_screen.h
         include/ui/ui_manager.h
 
         src/main.cpp
+        src/Patron.cpp
+        src/Book.cpp 
+        src/LibraryItem.cpp
+        src/Library.cpp
         src/ui/ui_manager.cpp
         src/ui/screens/screen.cpp
         src/ui/screens/main_screen.cpp
