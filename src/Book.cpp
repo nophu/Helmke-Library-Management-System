@@ -1,5 +1,6 @@
 #include "Book.h"
 
+// Constructor
 Book::Book(std::string title, std::string author, std::string isbn, GenreType genre, std::string callNumber, bool isAvailable)
     : 
     LibraryItem(title, callNumber), 
@@ -8,6 +9,7 @@ Book::Book(std::string title, std::string author, std::string isbn, GenreType ge
     genre(genre) 
 {}
 
+// Setters
 void Book::setAuthor(const std::string& author) {
     this->author = author;
 }
@@ -25,6 +27,7 @@ void Book::setGenre(const std::string& genre) {
         this->genre = GenreType::Romance;
 }
 
+// Getters
 std::string Book::getAuthor() const { return author; }
 std::string Book::getIsbn() const { return isbn; }
 GenreType Book::getGenre() const { return genre; }
