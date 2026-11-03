@@ -32,14 +32,14 @@ void Patron::setType(PatronType newType) {
 }
 
 // add an item to a specific patron's borrowed list
-void Patron::addBorrowedItem(int itemID) {
-    borrowedItemIDs.push_back(itemID); // add an itemID to the end of the list
+void Patron::addBorrowedItem(const std::string& callNumber) {
+    borrowedItemIDs.push_back(callNumber); // add a call number to the end of the list
 }
 
 // remove an item on a specific patron's borrowed list
-void Patron::removeBorrowedItem(int itemID) {
+void Patron::removeBorrowedItem(const std::string& callNumber) {
     for (int i = 0; i < borrowedItemIDs.size(); i++) { // check each item until we find a match
-        if (borrowedItemIDs[i] == itemID) { // match found
+        if (borrowedItemIDs[i] == callNumber) { // match found
             borrowedItemIDs.erase(borrowedItemIDs.begin() + i); // remove the item
             break;
         }
@@ -108,7 +108,7 @@ double Patron::getFinesOwed() const {
     return finesOwed;
 }
 
-const std::vector<int>& Patron::getBorrowedItems() const {
+const std::vector<std::string>& Patron::getBorrowedItems() const {
     return borrowedItemIDs;
 }
 

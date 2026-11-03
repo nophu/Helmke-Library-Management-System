@@ -54,9 +54,10 @@ add_executable(Helmke_Library_Management_System
 
         src/main.cpp
         src/Patron.cpp
-        src/Book.cpp 
+        src/Book.cpp
         src/LibraryItem.cpp
         src/Library.cpp
+        src/database.cpp
         src/ui/ui_manager.cpp
         src/ui/screens/screen.cpp
         src/ui/screens/main_screen.cpp
