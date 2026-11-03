@@ -3,8 +3,9 @@
 
 #include <sqlite3.h>
 #include <string>
-#include <vector> // for resizable arrays 
+#include <vector> // for resizable arrays
 #include "Patron.h"
+#include "Book.h"
 
 class Database {
 private:
@@ -24,6 +25,8 @@ public:
     bool getPatronByID(int patronID, Patron& outPatron);
     std::vector<Patron> getAllPatrons();
     bool getPatronWithMostFines(Patron& outPatron);
+
+    bool insertOrUpdateBook(const Book& b);
 };
 
 #endif

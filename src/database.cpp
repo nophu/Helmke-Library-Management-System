@@ -1,6 +1,18 @@
 #include "database.h"
 #include <iostream>
 
+// converts a genre enum into text so it can be saved in the database
+static std::string genreToString(GenreType genre) {
+    switch (genre) { // same idea as typeToString in Patron
+        case GenreType::Nonfiction: return "Nonfiction";
+        case GenreType::Fiction:    return "Fiction";
+        case GenreType::Fantasy:    return "Fantasy";
+        case GenreType::Mystery:    return "Mystery";
+        case GenreType::Romance:    return "Romance";
+    }
+    return "Nonfiction"; // fallback case
+}
+
 // constructor
 Database::Database(const std::string& path) : db(nullptr), dbPath(path) {
 }
@@ -51,14 +63,13 @@ bool Database::execSQL(const std::string& sql) {
 bool Database::initSchema() {
     const std::string schema =
         "CREATE TABLE IF NOT EXISTS items ("
-        "    item_id      INTEGER PRIMARY KEY,"
+        "    call_number  TEXT PRIMARY KEY,"
         "    item_type    TEXT NOT NULL,"
         "    title        TEXT NOT NULL,"
         "    author       TEXT,"
         "    director     TEXT,"
         "    isbn         TEXT,"
         "    genre        TEXT,"
-        "    call_number  TEXT,"
         "    runtime_min  INTEGER,"
         "    status       TEXT NOT NULL"
         ");"
@@ -72,13 +83,58 @@ bool Database::initSchema() {
         ");"
         "CREATE TABLE IF NOT EXISTS transactions ("
         "    transaction_id INTEGER PRIMARY KEY,"
-        "    item_id        INTEGER NOT NULL REFERENCES items(item_id),"
+        "    item_call_number TEXT NOT NULL REFERENCES items(call_number),"
         "    patron_id      INTEGER NOT NULL REFERENCES patrons(patron_id),"
         "    checkout_date  TEXT NOT NULL,"
         "    due_date       TEXT NOT NULL,"
         "    return_date    TEXT"
         ");";
     return execSQL(schema);
+}
+
+// save one book to the items table (or update it if the call number already exists)
+bool Database::insertOrUpdateBook(const Book& b) {
+    // string = query, item_type is always 'book' here
+    const char* sql = "INSERT OR REPLACE INTO items "
+        "(call_number, item_type, title, author, isbn, genre, status) "
+        "VALUES(?, 'book', ?, ?, ?, ?, ?)";
+
+    // initialize statement as a pointer
+    sqlite3_stmt *stmt = nullptr;
+
+    // prepare the statement/query
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    // throw error if statement could not be prepared
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
+        return false;
+    }
+
+    // status is saved as text, not true/false
+    std::string status = b.getAvailability() ? "available" : "checked_out";
+
+    // binding each getter as parameters
+    sqlite3_bind_text(stmt, 1, b.getCallNumber().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, b.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, b.getIsbn().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, genreToString(b.getGenre()).c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, status.c_str(), -1, SQLITE_TRANSIENT);
+
+    // run the prepared statement
+    int result = sqlite3_step(stmt);
+
+    // throw error if insert failed
+    if (result != SQLITE_DONE) {
+        std::cerr << "Failed to insert book: " << sqlite3_errmsg(db) << "\n";
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    // clean up prepared statement
+    sqlite3_finalize(stmt);
+    return true;
 }
 
 // insert or update queries
