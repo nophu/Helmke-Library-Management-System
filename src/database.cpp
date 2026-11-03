@@ -40,6 +40,7 @@ bool Database::open() {
         std::cerr << "Failed to open database: " << sqlite3_errmsg(db) << "\n";
         return false;
     }
+    std::cout << "Database opened successfully!\n";
     return true;
 }
 
@@ -49,6 +50,7 @@ void Database::close() {
     if (db) {
         sqlite3_close(db); // close the .db
         db = nullptr; // reset pointer; prevent dangling pointer
+        std::cout << "Database closed.\n";
     }
 }
 

@@ -11,7 +11,8 @@ class LibraryItem {
 
     public:
         LibraryItem(std::string title, std::string callNumber);
-
+        virtual ~LibraryItem() = default;
+        
         void setTitle(const std::string& title);
         void setAvailability(const bool isAvailable);
 

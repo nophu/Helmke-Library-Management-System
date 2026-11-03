@@ -1,8 +1,14 @@
+#include <iostream>
+
 #include "ui/screens/main_screen.h"
 
 #include "imgui.h"
 
-MainScreen::MainScreen(std::function<void()> onExit) : m_onExit(std::move(onExit)) {}
+#include "Library.h"
+#include "LibraryItem.h"
+
+MainScreen::MainScreen(Library& library, std::function<void()> onExit) 
+    : m_library(library), m_onExit(std::move(onExit)) {}
 
 void MainScreen::render() {
     const ImGuiViewport *viewport = ImGui::GetMainViewport();
@@ -43,6 +49,36 @@ void MainScreen::renderMenuBar() const {
         ImGui::Separator();
         if (ImGui::MenuItem("Exit", "Alt+F4")) {
             if (m_onExit) m_onExit();
+        }
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Book")) {
+        if (ImGui::MenuItem("Get")) {
+            std::vector<std::shared_ptr<Book>> items = m_library.getBooks();
+
+            std::cout << "Num of books: " << items.size() << "\n";
+
+            for (const auto& item : items) {
+                if (item) {
+                    std::cout << item->getTitle() << ", ";
+                    std::cout << item->getCallNumber() << ", ";
+                    std::cout << item->getIsbn() << ", ";
+                    std::cout << static_cast<int>(item->getGenre()) << ", ";
+                    std::cout << item->getAuthor() << ", ";
+                    std::cout << item->getAvailability() << "\n";
+                }
+            }
+        }
+
+        if (ImGui::MenuItem("Add")) {
+            // TODO: Add book to database using Library::addItem
+            std::shared_ptr<Book> book = std::make_shared<Book>("Title", "Author", "isbn", GenreType::Nonfiction, "Call Num", true);
+
+            m_library.addItem(book);
+        }
+        if (ImGui::MenuItem("Remove")) {
+            // TODO: Remove book from database using Library::removeItem
         }
         ImGui::EndMenu();
     }

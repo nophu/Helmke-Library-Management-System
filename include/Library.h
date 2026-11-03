@@ -6,18 +6,21 @@
 #include <vector>
 
 #include "LibraryItem.h"
+#include "database.h"
 
 class Library {
     private:
-        std::vector<std::shared_ptr<LibraryItem>> items;
+        Database database;
 
     public:
+        Library();
+
         void addItem(std::shared_ptr<LibraryItem> item);
         bool removeItem(const std::string& callNumber);
         
         std::shared_ptr<LibraryItem> findItem(const std::string& callNumber);
         
-        const std::vector<std::shared_ptr<LibraryItem>>& getItems();
+        std::vector<std::shared_ptr<Book>> getBooks();
 };
 
 #endif

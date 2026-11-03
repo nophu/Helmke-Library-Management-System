@@ -3,11 +3,12 @@
 #include <functional>
 
 #include "ui/screens/screen.h"
-
+#include "Library.h"
 
 class MainScreen : public Screen {
 public:
-    explicit MainScreen(std::function<void()> onExit = {});
+    Library& m_library;
+    explicit MainScreen(Library& library, std::function<void()> onExit);
 
     void render() override;
 

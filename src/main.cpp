@@ -8,6 +8,7 @@
 
 #include "ui/ui_manager.h"
 #include "ui/screens/main_screen.h"
+#include "Library.h"
 
 int main() {
     if (!glfwInit()) return 1;
@@ -38,8 +39,9 @@ int main() {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     UIManager uiManager;
-    uiManager.registerScreen("main", [window] {
-        return std::make_unique<MainScreen>([window] { glfwSetWindowShouldClose(window, GLFW_TRUE); });
+    Library library;
+    uiManager.registerScreen("main", [&library, window] {
+        return std::make_unique<MainScreen>(library, [window] { glfwSetWindowShouldClose(window, GLFW_TRUE); });
     });
     uiManager.switchTo("main");
 
