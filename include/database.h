@@ -27,6 +27,7 @@ public:
     bool getPatronWithMostFines(Patron& outPatron);
 
     bool insertOrUpdateBook(const Book& b);
+    std::vector<Book> getAllBooks();
 };
 
 #endif

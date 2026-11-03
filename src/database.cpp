@@ -13,6 +13,16 @@ static std::string genreToString(GenreType genre) {
     return "Nonfiction"; // fallback case
 }
 
+// converts text from the database back into a genre enum
+static GenreType genreFromString(const std::string& s) {
+    // text matches enum value
+    if (s == "Fiction") return GenreType::Fiction;
+    if (s == "Fantasy") return GenreType::Fantasy;
+    if (s == "Mystery") return GenreType::Mystery;
+    if (s == "Romance") return GenreType::Romance;
+    return GenreType::Nonfiction; // default = nonfiction
+}
+
 // constructor
 Database::Database(const std::string& path) : db(nullptr), dbPath(path) {
 }
@@ -324,4 +334,48 @@ bool Database::getPatronWithMostFines(Patron& outPatron) {
     // clean up prepared statement
     sqlite3_finalize(stmt);
     return false;
+}
+
+// query for getting all books saved in the items table
+std::vector<Book> Database::getAllBooks() {
+    std::vector<Book> result;
+
+    // query, only rows that are books
+    const char* sql = "SELECT call_number, title, author, isbn, genre, status "
+        "FROM items WHERE item_type = 'book'";
+
+    // prepare SQL statement
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    // throw error if SQL statement could not be prepared
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
+        return std::vector<Book>();
+    }
+
+    // while loop so that we can get ALL books since we do not know how many books exist
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        // convert SQLite's raw text into strings
+        std::string callNumber = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        std::string isbn = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        std::string genreStr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+        std::string status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+
+        // convert the genre text back into enum type
+        GenreType genre = genreFromString(genreStr);
+
+        // create book object
+        Book book(title, author, isbn, genre, callNumber, true);
+
+        // the book constructor ignores availability, so we set it ourselves
+        book.setAvailability(status == "available");
+
+        // push book to result
+        result.push_back(book);
+    }
+    sqlite3_finalize(stmt);
+    return result;
 }
