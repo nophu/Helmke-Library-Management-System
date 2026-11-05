@@ -27,6 +27,7 @@ public:
     bool getPatronWithMostFines(Patron& outPatron);
 
     bool insertOrUpdateBook(const Book& b);
+    bool removeBook(const std::string& callNumber);
     std::vector<Book> getAllBooks();
 };
 

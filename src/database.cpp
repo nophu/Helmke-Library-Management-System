@@ -149,6 +149,44 @@ bool Database::insertOrUpdateBook(const Book& b) {
     return true;
 }
 
+bool Database::removeBook(const std::string& callNumber) {
+    // Prepare query
+    const char* sql = "DELETE FROM items "
+        "WHERE call_number = ?";
+
+    sqlite3_stmt *stmt = nullptr;
+
+    // Prepare statement
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
+        return false;
+    }
+
+    // Bind callNumber to statement
+    sqlite3_bind_text(stmt, 1, callNumber.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Run query
+    int result = sqlite3_step(stmt);
+
+    // throw error if insert failed
+    if (result != SQLITE_DONE) {
+        std::cerr << "Failed to remove book: " << sqlite3_errmsg(db) << "\n";
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    // Checks if anything was actually deleted
+    int changes = sqlite3_changes(db);
+
+    // clean up prepared statement
+    sqlite3_finalize(stmt);
+    
+    // Return false if no changes were made
+    return changes > 0;
+}
+
 // insert or update queries
 bool Database::insertOrUpdatePatron(const Patron& p) {
     // string = query

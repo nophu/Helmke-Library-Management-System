@@ -21,11 +21,11 @@ void Library::addItem(std::shared_ptr<LibraryItem> item) {
     std::cout << "book added successfully!\n";
 }
 
-/*bool Library::removeItem(const std::string& callNumber) {
-
+bool Library::removeItem(const std::string& callNumber) {
+    return database.removeBook(callNumber);
 }
         
-std::shared_ptr<LibraryItem> Library::findItem(const std::string& callNumber) {
+/*std::shared_ptr<LibraryItem> Library::findItem(const std::string& callNumber) {
     
 }*/
         

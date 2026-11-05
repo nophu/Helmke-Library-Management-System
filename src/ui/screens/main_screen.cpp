@@ -72,13 +72,21 @@ void MainScreen::renderMenuBar() const {
         }
 
         if (ImGui::MenuItem("Add")) {
-            // TODO: Add book to database using Library::addItem
             std::shared_ptr<Book> book = std::make_shared<Book>("Title", "Author", "isbn", GenreType::Nonfiction, "Call Num", true);
 
             m_library.addItem(book);
         }
         if (ImGui::MenuItem("Remove")) {
-            // TODO: Remove book from database using Library::removeItem
+            std::string callNumToRemove = "";
+            std::cout << "Enter call number to remove: ";
+            std::getline(std::cin, callNumToRemove);
+
+            if (!m_library.removeItem(callNumToRemove)) {
+                std::cout << "Failed to remove book.\n";
+            }
+            else {
+                std::cout << "Book removed successfully!\n";
+            }
         }
         ImGui::EndMenu();
     }
