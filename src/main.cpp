@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include "messaging/message_bus.h"
 #include "ui/ui_manager.h"
 #include "ui/screens/main_screen.h"
 
@@ -25,12 +26,14 @@ int main() {
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO();
+    const ImGuiIO &io = ImGui::GetIO();
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    UIManager uiManager;
+    MessageBus bus;
+    UIManager uiManager(&bus);
+
     uiManager.registerScreen("main", [window] {
         return std::make_unique<MainScreen>([window] { glfwSetWindowShouldClose(window, GLFW_TRUE); });
     });

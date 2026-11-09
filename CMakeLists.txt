@@ -54,6 +54,9 @@ add_executable(Helmke_Library_Management_System
         src/ui/screens/screen.cpp
         src/ui/screens/main_screen.cpp
 
+        src/messaging/message_bus.cpp
+        src/messaging/message_bus_node.cpp
+
         # ImGui core
         ${IMGUI_DIR}/imgui.cpp
         ${IMGUI_DIR}/imgui_draw.cpp
@@ -64,6 +67,12 @@ add_executable(Helmke_Library_Management_System
         # ImGui backends
         ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
         ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+        include/messaging/message.h
+        include/messaging/message_bus.h
+        src/messaging/message_bus.cpp
+        include/messaging/message_bus_node.h
+        src/messaging/message_bus_node.cpp
+        include/messaging/events.h
 )
 
 target_include_directories(Helmke_Library_Management_System PRIVATE
