@@ -1,5 +1,27 @@
-#include "Database.h"
+#include "database.h"
 #include <iostream>
+
+// converts a genre enum into text so it can be saved in the database
+static std::string genreToString(GenreType genre) {
+    switch (genre) { // same idea as typeToString in Patron
+        case GenreType::Nonfiction: return "Nonfiction";
+        case GenreType::Fiction:    return "Fiction";
+        case GenreType::Fantasy:    return "Fantasy";
+        case GenreType::Mystery:    return "Mystery";
+        case GenreType::Romance:    return "Romance";
+    }
+    return "Nonfiction"; // fallback case
+}
+
+// converts text from the database back into a genre enum
+static GenreType genreFromString(const std::string& s) {
+    // text matches enum value
+    if (s == "Fiction") return GenreType::Fiction;
+    if (s == "Fantasy") return GenreType::Fantasy;
+    if (s == "Mystery") return GenreType::Mystery;
+    if (s == "Romance") return GenreType::Romance;
+    return GenreType::Nonfiction; // default = nonfiction
+}
 
 // constructor
 Database::Database(const std::string& path) : db(nullptr), dbPath(path) {
@@ -18,6 +40,7 @@ bool Database::open() {
         std::cerr << "Failed to open database: " << sqlite3_errmsg(db) << "\n";
         return false;
     }
+    std::cout << "Database opened successfully!\n";
     return true;
 }
 
@@ -27,6 +50,7 @@ void Database::close() {
     if (db) {
         sqlite3_close(db); // close the .db
         db = nullptr; // reset pointer; prevent dangling pointer
+        std::cout << "Database closed.\n";
     }
 }
 
@@ -51,14 +75,13 @@ bool Database::execSQL(const std::string& sql) {
 bool Database::initSchema() {
     const std::string schema =
         "CREATE TABLE IF NOT EXISTS items ("
-        "    item_id      INTEGER PRIMARY KEY,"
+        "    call_number  TEXT PRIMARY KEY,"
         "    item_type    TEXT NOT NULL,"
         "    title        TEXT NOT NULL,"
         "    author       TEXT,"
         "    director     TEXT,"
         "    isbn         TEXT,"
         "    genre        TEXT,"
-        "    call_number  TEXT,"
         "    runtime_min  INTEGER,"
         "    status       TEXT NOT NULL"
         ");"
@@ -72,13 +95,96 @@ bool Database::initSchema() {
         ");"
         "CREATE TABLE IF NOT EXISTS transactions ("
         "    transaction_id INTEGER PRIMARY KEY,"
-        "    item_id        INTEGER NOT NULL REFERENCES items(item_id),"
+        "    item_call_number TEXT NOT NULL REFERENCES items(call_number),"
         "    patron_id      INTEGER NOT NULL REFERENCES patrons(patron_id),"
         "    checkout_date  TEXT NOT NULL,"
         "    due_date       TEXT NOT NULL,"
         "    return_date    TEXT"
         ");";
     return execSQL(schema);
+}
+
+// save one book to the items table (or update it if the call number already exists)
+bool Database::insertOrUpdateBook(const Book& b) {
+    // string = query, item_type is always 'book' here
+    const char* sql = "INSERT OR REPLACE INTO items "
+        "(call_number, item_type, title, author, isbn, genre, status) "
+        "VALUES(?, 'book', ?, ?, ?, ?, ?)";
+
+    // initialize statement as a pointer
+    sqlite3_stmt *stmt = nullptr;
+
+    // prepare the statement/query
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    // throw error if statement could not be prepared
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
+        return false;
+    }
+
+    // status is saved as text, not true/false
+    std::string status = b.getAvailability() ? "available" : "checked_out";
+
+    // binding each getter as parameters
+    sqlite3_bind_text(stmt, 1, b.getCallNumber().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, b.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, b.getAuthor().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, b.getIsbn().c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, genreToString(b.getGenre()).c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, status.c_str(), -1, SQLITE_TRANSIENT);
+
+    // run the prepared statement
+    int result = sqlite3_step(stmt);
+
+    // throw error if insert failed
+    if (result != SQLITE_DONE) {
+        std::cerr << "Failed to insert book: " << sqlite3_errmsg(db) << "\n";
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    // clean up prepared statement
+    sqlite3_finalize(stmt);
+    return true;
+}
+
+bool Database::removeBook(const std::string& callNumber) {
+    // Prepare query
+    const char* sql = "DELETE FROM items "
+        "WHERE call_number = ?";
+
+    sqlite3_stmt *stmt = nullptr;
+
+    // Prepare statement
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
+        return false;
+    }
+
+    // Bind callNumber to statement
+    sqlite3_bind_text(stmt, 1, callNumber.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Run query
+    int result = sqlite3_step(stmt);
+
+    // throw error if insert failed
+    if (result != SQLITE_DONE) {
+        std::cerr << "Failed to remove book: " << sqlite3_errmsg(db) << "\n";
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    // Checks if anything was actually deleted
+    int changes = sqlite3_changes(db);
+
+    // clean up prepared statement
+    sqlite3_finalize(stmt);
+    
+    // Return false if no changes were made
+    return changes > 0;
 }
 
 // insert or update queries
@@ -268,4 +374,48 @@ bool Database::getPatronWithMostFines(Patron& outPatron) {
     // clean up prepared statement
     sqlite3_finalize(stmt);
     return false;
+}
+
+// query for getting all books saved in the items table
+std::vector<Book> Database::getAllBooks() {
+    std::vector<Book> result;
+
+    // query, only rows that are books
+    const char* sql = "SELECT call_number, title, author, isbn, genre, status "
+        "FROM items WHERE item_type = 'book'";
+
+    // prepare SQL statement
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    // throw error if SQL statement could not be prepared
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << "\n";
+        return std::vector<Book>();
+    }
+
+    // while loop so that we can get ALL books since we do not know how many books exist
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        // convert SQLite's raw text into strings
+        std::string callNumber = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        std::string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        std::string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        std::string isbn = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+        std::string genreStr = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
+        std::string status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+
+        // convert the genre text back into enum type
+        GenreType genre = genreFromString(genreStr);
+
+        // create book object
+        Book book(title, author, isbn, genre, callNumber, true);
+
+        // the book constructor ignores availability, so we set it ourselves
+        book.setAvailability(status == "available");
+
+        // push book to result
+        result.push_back(book);
+    }
+    sqlite3_finalize(stmt);
+    return result;
 }

@@ -15,7 +15,7 @@ private:
     PatronType type;
     int borrowLimit;
     double finesOwed;
-    std::vector<int> borrowedItemIDs;
+    std::vector<std::string> borrowedItemIDs;
 
     static constexpr double FINE_CAP = 25.00; // maybe changes this ?? 
     static constexpr double BLOCK_THRESHOLD = 10.00; // maybe change this too ?? 
@@ -31,8 +31,8 @@ public:
     void setEmail(const std::string& newEmail);
     void setType(PatronType newType);
 
-    void addBorrowedItem(int itemID);
-    void removeBorrowedItem(int itemID);
+    void addBorrowedItem(const std::string& callNumber);
+    void removeBorrowedItem(const std::string& callNumber);
     bool isAtBorrowLimit() const;
 
     void addFine(double amount);
@@ -47,7 +47,7 @@ public:
     PatronType getType() const;
     int getBorrowLimit() const;
     double getFinesOwed() const;
-    const std::vector<int>& getBorrowedItems() const;
+    const std::vector<std::string>& getBorrowedItems() const;
 
     static int defaultBorrowLimit(PatronType type);
     static std::string typeToString(PatronType type);

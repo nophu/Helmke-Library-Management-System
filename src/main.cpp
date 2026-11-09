@@ -2,21 +2,29 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 #include <memory>
 
 #include "messaging/message_bus.h"
 #include "ui/ui_manager.h"
 #include "ui/screens/main_screen.h"
+#include "Library.h"
 
 int main() {
     if (!glfwInit()) return 1;
 
-    const auto glsl_version = "#version 130";
+    const auto glsl_version = "#version 150";
+    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Helmke Library Management System", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(
+        1280, 720,
+        "Helmke Library Management System",
+        nullptr, nullptr
+    );
+
     if (!window) {
         glfwTerminate();
         return 1;
@@ -32,10 +40,11 @@ int main() {
     ImGui_ImplOpenGL3_Init(glsl_version);
 
     MessageBus bus;
+    Library library;
     UIManager uiManager(&bus);
 
-    uiManager.registerScreen("main", [window] {
-        return std::make_unique<MainScreen>([window] { glfwSetWindowShouldClose(window, GLFW_TRUE); });
+    uiManager.registerScreen("main", [&library, window] {
+        return std::make_unique<MainScreen>(library, [window] { glfwSetWindowShouldClose(window, GLFW_TRUE); });
     });
     uiManager.switchTo("main");
 
@@ -46,6 +55,7 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        bus.notify();
         uiManager.update(io.DeltaTime);
         uiManager.render();
 
