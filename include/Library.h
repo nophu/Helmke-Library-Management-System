@@ -7,6 +7,7 @@
 
 #include "LibraryItem.h"
 #include "database.h"
+#include "Patron.h"
 
 class Library {
     private:
@@ -21,6 +22,9 @@ class Library {
         std::shared_ptr<LibraryItem> findItem(const std::string& callNumber);
         
         std::vector<std::shared_ptr<Book>> getBooks();
+
+        bool addPatron(const Patron& patron);
+        std::vector<Patron> getPatrons();
 };
 
 #endif

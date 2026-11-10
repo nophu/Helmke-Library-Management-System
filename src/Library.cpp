@@ -42,3 +42,11 @@ std::vector<std::shared_ptr<Book>> Library::getBooks() {
     
     return items;
 }
+
+bool Library::addPatron(const Patron& patron) {
+    return database.insertOrUpdatePatron(patron);
+}
+
+std::vector<Patron> Library::getPatrons() {
+    return database.getAllPatrons();
+}
